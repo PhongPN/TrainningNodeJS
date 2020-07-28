@@ -1,7 +1,7 @@
 const jwt= require("../helper/jwt");
 
 
-
+//Tạo key và time cho token
 const accessTokenLife = process.env.ACCESS_TOKEN_LIFE || "1h";
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || "Phong";
 
@@ -16,6 +16,7 @@ let login = async (req, res) => {
       email: req.body.email,
     };
     if(username =="admin" && userpass=="123456"){
+    
     const accessToken = await jwt.generateToken(userFakeData, accessTokenSecret, accessTokenLife);
     return res.status(200).json(accessToken);
     }

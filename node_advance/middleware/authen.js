@@ -4,7 +4,7 @@ const debug = console.log.bind(console);
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || "Phong";
 
 let isAuth = async (req, res, next) => {
-  const tokenFromClient = req.body.token || req.query.token || req.headers["x-access-token"];
+  const tokenFromClient = req.body.token || req.query.token || req.headers["access-token"];
 
   if (tokenFromClient) {
     // Nếu tồn tại token

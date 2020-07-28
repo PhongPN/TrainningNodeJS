@@ -33,12 +33,15 @@ const userController = require("../controller/usercontroller");
 let initAPIs = (app) => {
   router.post("/login", authController.login);
   
-  // // Sử dụng authMiddleware.isAuth trước những api cần xác thực
-  // router.use(authMiddleWare.isAuth);
-  // // List Protect APIs:
-  // router.get("/users", userController.userLists);
-  // // router.get("/example-protect-api", ExampleController.someAction);
-
+  // Sử dụng authMiddleware.isAuth trước những api cần xác thực
+  router.use(authMiddleWare.isAuth);
+  // List Protect APIs:
+  router.get("/users", userController.userLists);
+  router.get("/example-protect-api", ExampleController.someAction);
+  router.get("/users/:id", )
+  router.post("/user",);
+  router.put("/user/:id",);
+  router.delete("/user/:id",);
   return app.use("/", router);
 }
 

@@ -1,20 +1,3 @@
-// //import module
-// const express = require("express");
-// const BodyParser = require("body-parser");
-// const routes = require('./routes/routes');
-
-// const app = express();
-// const port = 3000;
-
-// //bodyParsing middleware
-// app.use(BodyParser.json());
-// app.use(BodyParser.urlencoded({ extended: true }));
-
-// routes(app);
-
-// //Listen port
-// app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))
-
 const express = require("express");
 const app = express();
 const initAPIs = require("./routes/routes");
