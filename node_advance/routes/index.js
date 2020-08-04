@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var User = require('../model/user.model');
 const { use } = require('../app');
-const jwt = require('../utils/jwt');
+const  {verifyToken}= require('../utils/jwt');
+const token = require('jsonwebtoken')
 const bcrypt = require ('bcrypt');
 /* GET home page. */
 router.get('/',function(req, res, next){
@@ -10,39 +11,32 @@ router.get('/',function(req, res, next){
 })
 
 //Login and generate JWT
-router.get('/login',async(req, res, next)=>{ 
-  let username = req.body.username;
-  let password = req.body.password;
-  User.findOne({ username: username })
-  .then((user) => {
-    if (password == user.password) {
-      let token = jwt.generateToken(user,process.env.TOKEN_SECRET,process.env.TOKEN_LIFE)
-      res.json(token);
-    }
-  })
-  .catch((err) => {
-    res.sendStatus(404).send(err);
-  });
+router.post('/login', async(req, res) => {
+  //Login a registered user
+  User.verifyPassword(req.body, (token)=>{
+    console.log(token)
+    res.status(200).send(token)
+})
 })
 
-// Create TodoList
-router.post('/user', function(req,res,next){
-    User.create(req.body)
-    .then(user =>{
+// Create user
+router.post('/register', function(req,res,next){
+  if (Object.keys(req.body).length !== 0) {
+    User.create(req.body).then((user) => {
       res.send(user);
-    })
-    .catch((err) => {
-      res.sendStatus(404).send(err);
     });
+  } else {
+    res.sendStatus(404);
+  }
 })
 
 //Get all user
-router.get('/user', function(req, res, next) {
+router.get('/user',verifyToken, function(req, res, next) {
   User.find()
     .then(user =>{
       user = user.map( user =>{
         console.log(user)
-        return{'Fullname': user.userfirstname+' '+user.userlastname, "role": user.role}
+        return{'Fullname': user.userfirstname+' '+user.userlastname, 'role': user.role}
 
       })
       res.send(user);
@@ -53,7 +47,7 @@ router.get('/user', function(req, res, next) {
 });
 
 //Get user
-router.get('/user/:id', function(req, res, next){
+router.get('/user/:id',verifyToken, function(req, res, next){
   let id = req.params.id
   User.findOne({ id: id })
     .then((user) => {
@@ -65,11 +59,11 @@ router.get('/user/:id', function(req, res, next){
 })
 
 //Upadte user
-router.put('/:id', function(req, res, next){
+router.put('/user/:id',verifyToken, function(req, res, next){
   let id = req.params.id
-  Todo.findByIdAndUpdate({ id: id }, req.body)
+  User.findOneAndUpdate({ id: id }, req.body)
     .then(() => {
-    User.findById({ id: id }).then((user) => {
+    User.findOne({ id: id }).then((user) => {
       res.send(user);
     });
   })
@@ -79,10 +73,11 @@ router.put('/:id', function(req, res, next){
 })
 
 //Delete user
-router.delete('/:id', function(req,res,next){
-  Todo.findByIdAndRemove(req.params.id)
+router.delete('/user/:id',verifyToken, function(req,res,next){
+  let id = req.params.id;
+  User.findOneAndRemove({ id: id })
     .then((user) => {
-    res.send(user);
+    res.send("Delete user");
   })
   .catch((err) => {
     res.sendStatus(404).send(err);
