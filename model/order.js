@@ -1,28 +1,57 @@
-const mongoose = import("mongoose");
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology', true);
+import mongoose from 'mongoose';
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
 
-let orderSchema = new mongoose.Schema({
-    order_id: {
-        type: Number,
-        required: true,
-        unique: true
+let orderSchema = new Schema({
+    order_userId: {
+        type: ObjectId,
+        ref: "users",
     },
-    order_user: {
+    order_status: {
         type: String,
-        required: true,
-        unique: true
+        default: "pending",
     },
-    order_product: [
+    order_products: [
         {
-            product_name: { type: String },
-            product_quantity: { type: Number }
+            productId:
+            {
+                type: ObjectId,
+                ref: 'products'
+            },
+            quantity: Number
         }
-    ]
-})
+    ],
+    order_createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    order_updateAt: {
+        type: Date,
+        default: Date.now
+    },
+    order_updateBy: {
+        type: ObjectId,
+        ref: "users"
+    },
+    order_shipDate: {
+        type: Date,
+        default: undefined,
+    },
+    order_shipAddress: {
+        type: "String"
+    }
+});
 
+orderSchema.pre("findOneAndUpdate", async function (next) {
+    const docToUpdate = await this.model.findOne(this.getQuery());
+    docToUpdate.updateAt = Date.now();
+    docToUpdate.save(function (err) {
+        if (err) {
+            console.log(err);
+        }
+    });
+    next();
+});
 const Order = mongoose.model("Order", orderSchema);
 
-module.exports = Order;
+export default Order;

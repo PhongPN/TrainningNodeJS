@@ -1,24 +1,22 @@
-const { verifyToken } = require("../helper/jwt");
+import { verifyToken } from '../middleware/authentication.js';
+import {createO, findOs, findO, updateO, deleteO} from '../controller/order/orderAPI.js'
+import express from 'express'
 
-module.exports = app => {
-    const orders = require("../controller/category");
+const router = express.Router();
 
-    var router = require("express").Router();
+// Create a new product
+router.post("/", verifyToken, createO);
 
-    // Create a new product
-    router.post("/", verifyToken, orders.create);
-  
-    // Retrieve all products
-    router.get("/", verifyToken, orders.findAll);
-  
-    // Retrieve a single product with id
-    router.get("/:id", verifyToken, orders.findOne);
-  
-    // Update a product with id
-    router.put("/:id", verifyToken, orders.update);
-  
-    // Delete a product with id
-    router.delete("/:id", verifyToken, orders.delete);
-    
-    app.use('/orders', router);
-  };
+// Retrieve all products
+router.get("/", verifyToken, findOs);
+
+// Retrieve a single product with id
+router.get("/:id", verifyToken, findO);
+
+// Update a product with id
+router.put("/:id", verifyToken, updateO);
+
+// Delete a product with id
+router.delete("/:id", verifyToken, deleteO);
+
+export default router ;

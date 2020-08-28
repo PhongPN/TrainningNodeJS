@@ -1,27 +1,47 @@
-const mongoose = require("mongoose");
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology', true);
+import mongoose from 'mongoose';
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
 
-
-let categorySchema = new mongoose.Schema({
+const categorySchema = new Schema({
     category_id:{
-        type: Number,
-        required: true,
-        unique: true
+        type: ObjectId,
+        required: true
     },
-    category_title:{
+    category_title: {
         type: String,
         required: true,
         unique: true
     },
-    category_content:{
+    category_content: {
         type: String,
         required: true
+    },
+    category_creted_date: {
+        type: Date,
+        default: Date.now
+    },
+    category_lastEdited_date: {
+        type: Date,
+        default: Date.now
+    },
+    category_updateBy: {
+        type: ObjectId,
+        ref: "users",
+        default: null
     }
 }, { collection: "category" });
 
+categorySchema.pre("findOneAndUpdate", async function (next) {
+    const docToUpdate = await this.model.findOne(this.getQuery());
+    docToUpdate.updateAt = Date.now();
+    docToUpdate.save(function (err) {
+        if (err) {
+            console.log(err)
+        }
+    });
+    next();
+});
+
 const Category = mongoose.model("Category", categorySchema);
 
-module.exports = Category;
+export default Category;

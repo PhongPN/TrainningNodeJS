@@ -1,24 +1,22 @@
-const { verifyToken } = require("../helper/jwt");
+import { verifyToken } from '../middleware/authentication.js';
+import {createP, findP, findPs, updateP, deleteP} from '../controller/product/productAPI.js';
+import express from 'express';
 
-module.exports = app => {
-    const products = require("../controller/product");
+const router = express.Router();
 
-    var router = require("express").Router();
+// Create a new product
+router.post("/", verifyToken, createP);
 
-    // Create a new product
-    router.post("/", verifyToken, products.create);
-  
-    // Retrieve all products
-    router.get("/", verifyToken, products.findAll);
-  
-    // Retrieve a single product with id
-    router.get("/:id", verifyToken, products.findOne);
-  
-    // Update a product with id
-    router.put("/:id", verifyToken, products.update);
-  
-    // Delete a product with id
-    router.delete("/:id", verifyToken, products.delete);
-    
-    app.use('/products', router);
-  };
+// Retrieve all products
+router.get("/", verifyToken, findPs);
+
+// Retrieve a single product with id
+router.get("/:id", verifyToken, findP);
+
+// Update a product with id
+router.put("/:id", verifyToken, updateP);
+
+// Delete a product with id
+router.delete("/:id", verifyToken, deleteP);
+
+export default router;

@@ -1,18 +1,11 @@
-const mongoose = require("mongoose");
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology', true);
-const bcrypt = require("bcrypt");
-const dotenv = require("dotenv");
-dotenv.config();
-const jwt = require("../helper/jwt");
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+const ObjectId = mongoose.SchemaTypes.ObjectId;
 
-let userSchema = new mongoose.Schema({
-    user_id: {
-        type: Number,
-        required: true,
-        unique: true
+const userSchema = new mongoose.Schema({
+    user_id:{
+        type: ObjectId,
+        required: true
     },
     user_username: {
         type: String,
@@ -26,36 +19,64 @@ let userSchema = new mongoose.Schema({
     user_fullname: {
         type: String,
         required: true
+    },
+    user_created_date: {
+        type: Date,
+        default: Date.now
+    },
+    user_lastEdited_date: {
+        type: Date,
+        default: Date.now
+    },
+    resetToken: {
+        type: String,
+        default: null,
+    },
+    resetTokenExpired: {
+        type: Date,
+        default: Date.now
     }
+
 }, { collection: "user" });
 
 userSchema.pre("save", async function save(next) {
     try {
+        console.log(this.user_userpass)
         const salt = await bcrypt.genSalt(10);
         this.user_userpass = await bcrypt.hash(this.user_userpass, salt);
+        console.log(this.user_userpass)
         return next();
     } catch (err) {
         return next(err);
     }
 });
 
-userSchema.statics.verifyPassword = function (verifyUser, callback) {
-    this.findOne({ user_username: verifyUser.username })
-        .then((user) => {
-            if (bcrypt.compare(verifyUser.password, user.user_userpass)) {
-                //console.log(user.user_username)
-                jwt.generateToken(verifyUser, process.env.TOKEN_SECRETKEY, process.env.TOKEN_LIFE, (token)=>{
-                    callback(token)
-                })
-            } else {
-                callback({ error: "error username, password" });
-            }
-        })
-        .catch((err) => {
-            callback({ error: "error" });
-        });
-};
+userSchema.pre("findOneAndUpdate", async function (next) {
+    const docToUpdate = await this.model.findOne(this.getQuery());
+    docToUpdate.user_userpass = this._update.user_userpass
+    docToUpdate.user_lastEdited_date = Date.now();
+    docToUpdate.save(function (err) {
+        if (err) {
+           console.log(err);
+        }
+    });
+    next();
+});
 
+
+userSchema.statics.verifyPassword = async function (verifyUser){
+    const user = await this.findOne({ user_username : verifyUser.username })
+    if (!user)
+        return { error: true, message: 'Username not found' }
+    else {
+        if (bcrypt.compareSync(verifyUser.password, user.user_userpass)) {
+            return { error: false, message: { fullname: user.user_fullName, username: user.user_username } }
+        } else {
+            return { error: true, message: 'Incorrect password' }
+        }
+    }
+
+};
 const User = mongoose.model("user", userSchema);
 
-module.exports = User;
+export default User;

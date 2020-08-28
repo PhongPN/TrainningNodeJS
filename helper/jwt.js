@@ -1,42 +1,18 @@
-const jwt = require("jsonwebtoken")
-const dotenv = require("dotenv");
-dotenv.config();
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto'
 
 //Generate token
-let generateToken = (user, secretSignature, tokenLife, callback) => {
-    jwt.sign(
-        user,
-        secretSignature,
-        { expiresIn: tokenLife },
-        (err, token) => {
-            if (err) {
-                callback(err);
-            } else {
-                callback({ "token": token });
-            }
-        }
-    );
-}
+export const generateToken = async (data) => {
+	const result = await jwt.sign(data, process.env.TOKEN_SECRETKEY,{expiresIn: process.env.TOKEN_LIFE} )
+  return result
+};
 
-let verifyToken = (req, res, next) => {
-    const authorization = req.headers["authorization"];
-    if (typeof authorization !== "undefined") {
-        req.token = authorization.split(" ")[1];
-        jwt.verify(req.token, process.env.TOKEN_SECRETKEY, (err, authData) => {
-            console.log(err)
-            if (err) {
-                res.status(403).send(err)
-            }
-            else {
-                next();
-            }
-        });
-    } else {
-        res.status(403);
-    }
-}
-
-module.exports = {
-    verifyToken: verifyToken,
-    generateToken: generateToken
+export const generateResetToken = () => {
+	const tokenLength = 8
+	let expriredTime = new Date;
+	expriredTime.setMinutes(expriredTime.getMinutes() + 1000)
+	return {
+		resetToken: crypto.randomBytes(Math.ceil(tokenLength / 2)).toString('hex').slice(0, tokenLength),
+		resetTokenExpired: expriredTime
+	}
 };

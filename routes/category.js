@@ -1,24 +1,21 @@
-const { verifyToken } = require("../helper/jwt");
+import { verifyToken } from '../middleware/authentication.js';
+import {createC, findC, findCs, updateC, deleteC} from '../controller/category/categoryAPI.js';
+import express from 'express';
 
-module.exports = app => {
-    const categorys = require("../controller/category");
+const router = express.Router();
+// Create a new category
+router.post("/", verifyToken, createC);
 
-    var router = require("express").Router();
+// Retrieve all category
+router.get("/", verifyToken, findCs);
 
-    // Create a new category
-    router.post("/", verifyToken, categorys.create);
-  
-    // Retrieve all category
-    router.get("/", verifyToken, categorys.findAll);
-  
-    // Retrieve a single category with id
-    router.get("/:id", verifyToken, categorys.findOne);
-  
-    // Update a category with id
-    router.put("/:id", verifyToken, categorys.update);
-  
-    // Delete a category with id
-    router.delete("/:id", verifyToken, categorys.delete);
-    
-    app.use('/categorys', router);
-  };
+// Retrieve a single category with id
+router.get("/:id", verifyToken, findC);
+
+// Update a category with id
+router.put("/:id", verifyToken, updateC);
+
+// Delete a category with id
+router.delete("/:id", verifyToken, deleteC);
+
+export default router;
